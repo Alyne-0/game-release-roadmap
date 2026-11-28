@@ -56,4 +56,17 @@ class ReleaseRepository {
             .param("status", release.status().name())
             .update();
     }
+
+    boolean update(Release release) {
+        return jdbc.sql("""
+            UPDATE releases
+            SET title = :title, planned_date = :plannedDate, status = :status
+            WHERE version = :version
+            """)
+            .param("title", release.title())
+            .param("plannedDate", release.plannedDate())
+            .param("status", release.status().name())
+            .param("version", release.version())
+            .update() == 1;
+    }
 }

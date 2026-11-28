@@ -28,4 +28,9 @@ public class ReleaseRoadmap {
         repository.insert(release);
         return release;
     }
+
+    public Optional<Release> updateRelease(String version, String title, LocalDate plannedDate, Release.Status status) {
+        Release release = new Release(version, title.strip(), plannedDate, status);
+        return repository.update(release) ? Optional.of(release) : Optional.empty();
+    }
 }

@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,7 +41,7 @@ public class ReleaseController {
     @GetMapping("/{version}")
     public Release getRelease(@PathVariable String version) {
         return roadmap.findRelease(version)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Релиз не найден"));
+            .orElseThrow(this::releaseNotFound);
     }
 
     @PostMapping
@@ -58,6 +59,25 @@ public class ReleaseController {
             .toUri();
         return ResponseEntity.created(location).body(release);
     }
+
+    @PutMapping("/{version}")
+    public Release updateRelease(
+        @PathVariable String version,
+        @Valid @RequestBody UpdateReleaseRequest request
+    ) {
+        return roadmap.updateRelease(version, request.title(), request.plannedDate(), request.status())
+            .orElseThrow(this::releaseNotFound);
+    }
+
+    private ResponseStatusException releaseNotFound() {
+        return new ResponseStatusException(HttpStatus.NOT_FOUND, "Релиз не найден");
+    }
+
+    public record UpdateReleaseRequest(
+        @NotBlank @Size(max = 120) String title,
+        @NotNull LocalDate plannedDate,
+        @NotNull Release.Status status
+    ) {}
 
     public record CreateReleaseRequest(
         @NotNull @Size(max = 32) @Pattern(regexp = "[0-9]+\\.[0-9]+\\.[0-9]+") String version,
